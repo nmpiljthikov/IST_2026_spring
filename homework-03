@@ -1,0 +1,34 @@
+import sys
+import numpy as np
+
+input_lines = sys.stdin.readlines()
+input_lines = [[int(elem) for elem in row.split(",")] for row in input_lines]
+
+img_height = input_lines[0][0]
+img_length = input_lines[0][1]
+image = np.array(input_lines[1:img_height+1])
+con_height = input_lines[img_height+1][0]
+con_length = input_lines[img_height+1][1]
+processed_image = np.array(input_lines[img_height+2:])
+
+filter = np.zeros((con_height,con_length))
+padded_image = np.zeros((img_height+(con_height//2)*2, img_length+(con_length//2)*2))
+Matrix = np.zeros((img_height*img_length,con_height*con_length),dtype=np.float64)
+Vector = np.zeros((img_height*img_length),dtype=np.float64)
+
+for i in range(img_height):
+    for j in range(img_length):
+        padded_image[i+con_height//2,j+con_length//2] = image[i][j]
+for i in range(img_height):
+    for j in range(img_length):
+        Vector[i*img_length+j] = processed_image[i][j]
+        for m in range(con_height):
+            for n in range(con_length):
+                m2, n2 = m-(con_height//2), n-(con_length//2)
+                Matrix[i*img_length+j][m*con_length+n] = padded_image[i+m2+con_height//2][j+n2+con_length//2]
+
+Answer = np.linalg.lstsq(Matrix,Vector,rcond=None)
+Answer = np.fliplr(np.flipud(Answer[0].reshape(con_height,con_length)))
+
+for row in Answer:
+    print(",".join([str(int(np.round(x))) for x in row]))
