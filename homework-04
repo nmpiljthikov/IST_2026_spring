@@ -1,0 +1,66 @@
+import sys
+import decimal
+
+def main():
+    input_data = sys.stdin.buffer.read().split()
+    if len(input_data) < 3:
+        return
+        
+    N = int(input_data[0])
+    if N == 0:
+        return
+        
+    seq1 = input_data[1].replace(b',', b'')[:N]
+    seq2 = input_data[2].replace(b',', b'')[:N]
+    
+    
+    D = len(str(N))
+    size = N * D
+    
+    tA = bytearray(b'0' * 256); tA[65] = 49
+    tC = bytearray(b'0' * 256); tC[67] = 49
+    tG = bytearray(b'0' * 256); tG[71] = 49
+    tT = bytearray(b'0' * 256); tT[84] = 49
+    
+    b_template = bytearray(b'0' * size)
+    
+    def make_dec(seq, table):
+        b = b_template.copy()
+        b[D-1::D] = seq.translate(table)
+        return decimal.Decimal(b.decode('ascii'))
+        
+    seq1_rev = seq1[::-1]
+    
+    XA = make_dec(seq1_rev, tA)
+    XC = make_dec(seq1_rev, tC)
+    XG = make_dec(seq1_rev, tG)
+    XT = make_dec(seq1_rev, tT)
+    
+    YA = make_dec(seq2, tA)
+    YC = make_dec(seq2, tC)
+    YG = make_dec(seq2, tG)
+    YT = make_dec(seq2, tT)
+    
+    expected_len = (2 * N - 1) * D
+    
+    
+    decimal.getcontext().prec = expected_len + 100
+    decimal.getcontext().Emax = 999999999
+    
+    Z = XA * YA + XC * YC + XG * YG + XT * YT
+    
+    
+    Z_str = format(Z, 'f').zfill(expected_len)
+    
+    
+    chunks = [Z_str[i:i+D] for i in range(0, expected_len, D)]
+    best_str = max(chunks)
+    best = int(best_str)
+    
+   
+    best_j = chunks[::-1].index(best_str)
+    
+    print(f"{N - 1 - best_j},{best}")
+
+if __name__ == "__main__":
+    main()
